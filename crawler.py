@@ -1,17 +1,14 @@
-imported = False
-while not imported:
-    try:
-        from bs4 import BeautifulSoup
-        from datetime import datetime
-        import json
-        from ratelimiter import RateLimiter
-        import re
-        import requests
-        import shutil
-        imported = True
-    except ImportError as e:
-        import pip
-        pip.main(['install', 'bs4', 'requests', 'ratelimiter'])
+#!/usr/bin/env python3
+"""
+sudo pip3 install bs4 requests ratelimiter
+"""
+from bs4 import BeautifulSoup
+from datetime import datetime
+import json
+from ratelimiter import RateLimiter
+import re
+import requests
+import shutil
 
 DOMAIN = '\u006d\u0078\u002e\u006d\u0069\u006c\u0065\u0072\u006f\u0074\u0069\u0063\u006f\u0073\u002e\u0063\u006f\u006d'
 PATH = '\u002f\u0065\u0073\u0063\u006f\u0072\u0074\u0073\u002f\u006a\u0061\u006c\u0069\u0073\u0063\u006f\u002f\u0067\u0075\u0061\u0064\u0061\u006c\u0061\u006a\u0061\u0072\u0061\u002f'
@@ -45,8 +42,8 @@ for link in links:
         id_ = RE_ID.match(soup.find_all(text=RE_ID)[0]).group(1)
         age = int(RE_AGE.match(soup.find_all(text=RE_AGE)[0]).group(1)) if soup.find_all(text=RE_AGE) else 'n/a'
         cel = soup.find_all('span', {'class': 'me-phone'})[0].find_next_sibling('span').contents[0]
-        pics = soup.find_all('picture')
-        img_urls = [p.next_element.attrs['data-srcset'] for p in pics]
+        imgs = soup.find_all('img', {'class': 'img-responsive'})
+        img_urls = [i.attrs['data-src'] for i in imgs]
         with open(name + '.metadata', 'w') as meta:
             json.dump({'id': id_, 'cel': cel, 'url': url, 'imgs': img_urls, 'age': age, 'time': str(datetime.now())}, meta, indent=4)
         for i, url in enumerate(img_urls):
@@ -55,4 +52,4 @@ for link in links:
             with open(path, 'wb') as f:
                 shutil.copyfileobj(r.raw, f)
     except IndexError as e:
-        print('ERROR ' + link + ' ' + e)
+        print('ERROR: %s: %s' % (link, e))
